@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPS-WMS</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
+<style>
+:root{--bg:#f6f5f2;--surface:#fff;--border:#e3e1d9;--border2:#c9c7be;--text:#1a1917;--text2:#6b6960;--text3:#9b9a94;--ok:#2d6a2d;--ok-bg:#eaf3ea;--warn:#7a4f00;--warn-bg:#fef3dc;--danger:#8b1a1a;--danger-bg:#fdeaea;--info:#174a8b;--info-bg:#e8f0fa;--accent:#1a1917;--r:8px;--font:'system-ui',-apple-system,sans-serif;--mono:'ui-monospace','Cascadia Code',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+.shell{display:flex;min-height:100vh}
+.sidebar{width:224px;background:var(--accent);color:#fff;display:flex;flex-direction:column;flex-shrink:0}
+.logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.logo-title{font-size:15px;font-weight:600;letter-spacing:.02em}.logo-sub{font-size:11px;opacity:.4;margin-top:2px;font-family:var(--mono)}
+nav{padding:12px 0;flex:1}
+.nav-section{padding:8px 20px 4px;font-size:10px;font-weight:500;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.08em}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 20px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.65);transition:all .15s;border-left:2px solid transparent}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.07)}.nav-item.active{color:#fff;background:rgba(255,255,255,.12);border-left-color:#fff}
+.nav-item i{font-size:16px;width:18px;text-align:center;flex-shrink:0}
+.sidebar-footer{padding:14px 20px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;opacity:.3;font-family:var(--mono)}
+.main{flex:1;overflow:auto}.page{display:none;padding:28px 32px;max-width:1120px}.page.active{display:block}
+.page-header{margin-bottom:24px}.page-header h1{font-size:20px;font-weight:500}.page-header p{color:var(--text2);font-size:13px;margin-top:3px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-bottom:14px}
+.card-title{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:22px}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.metric-val{font-size:26px;font-weight:500;font-family:var(--mono);line-height:1}.metric-label{font-size:12px;color:var(--text2);margin-top:5px}
+.metric-val.warn{color:var(--warn)}.metric-val.danger{color:var(--danger)}.metric-val.info{color:var(--info)}
+.form-grid{display:grid;gap:10px}.g2{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}.g3{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.g4{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+.field label{display:block;font-size:11px;font-weight:500;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+input[type=text],input[type=number],input[type=date],input[type=password],select,textarea{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-family:var(--font);font-size:13px;background:var(--bg);color:var(--text);transition:border-color .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--text);background:#fff}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.btn{padding:7px 14px;border:1px solid var(--border2);border-radius:6px;background:var(--surface);color:var(--text);font-family:var(--font);font-size:13px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--bg)}.btn-primary{background:var(--text);color:#fff;border-color:var(--text)}.btn-primary:hover{opacity:.85}
+.btn-sm{padding:4px 10px;font-size:12px}.btn-danger{color:var(--danger);border-color:#f5c1c1}.btn-danger:hover{background:var(--danger-bg)}
+.btn-info{color:var(--info);border-color:#b5d4f4}.btn-info:hover{background:var(--info-bg)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;font-size:11px;font-weight:500;color:var(--text3);padding:6px 10px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+tbody td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}tbody tr:hover td{background:#fafaf8}
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;font-size:11px;font-weight:500;white-space:nowrap}
+.badge-ok{background:var(--ok-bg);color:var(--ok)}.badge-warn{background:var(--warn-bg);color:var(--warn)}
+.badge-danger{background:var(--danger-bg);color:var(--danger)}.badge-info{background:var(--info-bg);color:var(--info)}
+.badge-gray{background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.mtag{font-family:var(--mono);font-size:12px;background:var(--bg);padding:2px 6px;border-radius:4px;border:1px solid var(--border)}
+.filter-bar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.filter-bar input,.filter-bar select{width:auto;min-width:130px}
+#toast{position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;display:none;z-index:999;max-width:360px;box-shadow:0 4px 12px rgba(0,0,0,.12)}
+#toast.ok{background:var(--ok-bg);color:var(--ok);border:1px solid #b8d8b8}
+#toast.err{background:var(--danger-bg);color:var(--danger);border:1px solid #f5c1c1}
+#toast.info{background:var(--info-bg);color:var(--info);border:1px solid #b5d4f4}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}.modal{background:var(--surface);border-radius:var(--r);padding:22px 24px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:16px;font-weight:500;margin-bottom:16px}.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.drop-area{border:1.5px dashed var(--border2);border-radius:var(--r);padding:24px;text-align:center;cursor:pointer;color:var(--text2);font-size:13px;transition:all .15s}
+.drop-area:hover{background:var(--bg);border-color:var(--text3)}
+.loading,.empty{text-align:center;padding:36px;color:var(--text3);font-size:13px}
+.fefo-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--border);border-radius:6px;margin-bottom:6px}
+.rank{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0;font-family:var(--mono)}
+.rank-1{background:var(--danger-bg);color:var(--danger)}.rank-2{background:var(--warn-bg);color:var(--warn)}.rank-n{background:var(--bg);color:var(--text3);border:1px solid var(--border)}
+.sep-line{border:none;border-top:1px solid var(--border);margin:14px 0}
+.onda-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:10px}
+.qlik-status{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:14px}
+.qlik-status.ok{background:var(--ok-bg);color:var(--ok)}.qlik-status.off{background:var(--warn-bg);color:var(--warn)}
+@media(max-width:700px){.sidebar{display:none}.page{padding:14px}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <div class="logo"><div class="logo-title">OPS-WMS</div><div class="logo-sub">v2.0 · pt-BR</div></div>
+  <nav>
+    <div class="nav-section">Visão geral</div>
+    <div class="nav-item active" onclick="goTo('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+    <div class="nav-section">Pedidos</div>
+    <div class="nav-item" onclick="goTo('pedidos')"><i class="ti ti-file-invoice"></i> Pedidos</div>
+    <div class="nav-item" onclick="goTo('ondas')"><i class="ti ti-wave-sine"></i> Ondas de separação</div>
+    <div class="nav-section">Estoque</div>
+    <div class="nav-item" onclick="goTo('recebimento')"><i class="ti ti-package-import"></i> Recebimento</div>
+    <div class="nav-item" onclick="goTo('estoque')"><i class="ti ti-layout-grid"></i> Estoque / Endereços</div>
+    <div class="nav-item" onclick="goTo('fefo')"><i class="ti ti-sort-ascending-2"></i> Fila FEFO</div>
+    <div class="nav-section">Rastreabilidade</div>
+    <div class="nav-item" onclick="goTo('movimentos')"><i class="ti ti-history"></i> Movimentos</div>
+    <div class="nav-section">Sistema</div>
+    <div class="nav-item" onclick="goTo('importar')"><i class="ti ti-upload"></i> Importar / Exportar</div>
+    <div class="nav-item" onclick="goTo('config')"><i class="ti ti-settings"></i> Configurações</div>
+  </nav>
+  <div class="sidebar-footer">PostgreSQL · Render</div>
+</aside>
+<main class="main">
+
+<div id="page-dashboard" class="page active">
+  <div class="page-header"><h1>Dashboard</h1><p>Visão operacional em tempo real</p></div>
+  <div class="metrics">
+    <div class="metric"><div class="metric-val" id="d-lotes">—</div><div class="metric-label">Lotes ativos</div></div>
+    <div class="metric"><div class="metric-val" id="d-skus">—</div><div class="metric-label">SKUs distintos</div></div>
+    <div class="metric"><div class="metric-val warn" id="d-atencao">—</div><div class="metric-label">Vencem em 30d</div></div>
+    <div class="metric"><div class="metric-val danger" id="d-vencidos">—</div><div class="metric-label">Vencidos</div></div>
+    <div class="metric"><div class="metric-val" id="d-pendentes">—</div><div class="metric-label">Pedidos pendentes</div></div>
+    <div class="metric"><div class="metric-val info" id="d-ondas">—</div><div class="metric-label">Ondas abertas</div></div>
+    <div class="metric"><div class="metric-val danger" id="d-atrasados">—</div><div class="metric-label">Atrasados</div></div>
+  </div>
+  <div class="card"><div class="card-title">Alertas de validade</div><div id="d-criticos"><div class="loading">Carregando...</div></div></div>
+  <div class="card"><div class="card-title">Pedidos pendentes</div><div id="d-pedidos-old"><div class="loading">Carregando...</div></div></div>
+</div>
+
+<div id="page-pedidos" class="page">
+  <div class="page-header"><h1>Pedidos</h1><p>Gerencie pedidos e gere ondas de separação</p></div>
+  <div class="card">
+    <div class="card-title">Novo pedido manual</div>
+    <div class="form-grid g4">
+      <div class="field"><label>Nº Pedido *</label><input type="text" id="p-num" placeholder="PED-001"></div>
+      <div class="field"><label>Data pedido</label><input type="date" id="p-dped"></div>
+      <div class="field"><label>Cliente</label><input type="text" id="p-cli" placeholder="Nome"></div>
+      <div class="field"><label>SKU *</label><input type="text" id="p-sku" placeholder="SKU-001"></div>
+    </div>
+    <div class="form-grid g4" style="margin-top:10px">
+      <div class="field"><label>Descrição</label><input type="text" id="p-desc" placeholder="Descrição"></div>
+      <div class="field"><label>Quantidade *</label><input type="number" id="p-qty" min="1" placeholder="0"></div>
+      <div class="field"><label>Transportadora</label><input type="text" id="p-transp" placeholder="Correios"></div>
+      <div class="field"><label>Serviço</label><input type="text" id="p-serv" placeholder="SEDEX"></div>
+    </div>
+    <div class="form-grid g4" style="margin-top:10px">
+      <div class="field"><label>Campanha</label><input type="text" id="p-camp"></div>
+      <div class="field"><label>Fornecedor</label><input type="text" id="p-forn"></div>
+      <div class="field"><label>Data entrega</label><input type="date" id="p-entrega"></div>
+      <div class="field"><label>Prioridade</label>
+        <select id="p-prio"><option value="1">1 — Alta</option><option value="2" selected>2 — Média</option><option value="3">3 — Baixa</option></select>
+      </div>
+    </div>
+    <div class="form-actions"><button class="btn" onclick="limparPedido()">Limpar</button><button class="btn btn-primary" onclick="salvarPedido()"><i class="ti ti-plus"></i> Adicionar</button></div>
+  </div>
+  <div class="card" style="padding:14px 18px">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Importar CSV — layouts PRW e Qlik detectados automaticamente</div>
+    <div class="drop-area" onclick="document.getElementById('csv-ped').click()" style="padding:14px">
+      <i class="ti ti-upload" style="font-size:22px;display:block;margin-bottom:4px"></i>Importar CSV de pedidos
+      <input type="file" id="csv-ped" accept=".csv,.txt" style="display:none" onchange="importarPedidosCSV(event)">
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="btn btn-sm" onclick="baixarModeloPedidos()"><i class="ti ti-download"></i> Modelo CSV</button></div>
+  </div>
+  <div class="filter-bar">
+    <select id="pf-status" onchange="carregarPedidos()"><option value="">Todos</option><option value="pendente">Pendentes</option><option value="em_onda">Em onda</option></select>
+    <input type="text" id="pf-transp" placeholder="Transportadora..." oninput="carregarPedidos()">
+    <input type="text" id="pf-serv"   placeholder="Serviço..."        oninput="carregarPedidos()">
+    <input type="text" id="pf-camp"   placeholder="Campanha..."       oninput="carregarPedidos()">
+    <select id="pf-prio" onchange="carregarPedidos()"><option value="">Prioridade</option><option value="1">Alta</option><option value="2">Media</option><option value="3">Todas</option></select>
+    <button class="btn btn-sm" onclick="carregarPedidos()"><i class="ti ti-refresh"></i></button>
+    <button class="btn btn-sm btn-primary" onclick="abrirModalOnda()"><i class="ti ti-wave-sine"></i> Nova onda</button>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden"><div class="table-wrap" id="pedidos-wrap"><div class="loading">Carregando...</div></div></div>
+</div>
+
+<div id="page-ondas" class="page">
+  <div class="page-header"><h1>Ondas de separação</h1><p>Agrupe pedidos por critério</p></div>
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <button class="btn btn-primary" onclick="goTo('pedidos')"><i class="ti ti-plus"></i> Nova onda</button>
+    <button class="btn btn-sm" onclick="carregarOndas()"><i class="ti ti-refresh"></i></button>
+  </div>
+  <div id="ondas-wrap"><div class="loading">Carregando...</div></div>
+</div>
+
+<div id="page-recebimento" class="page">
+  <div class="page-header"><h1>Recebimento</h1><p>Registre lotes e validades na entrada</p></div>
+  <div class="card">
+    <div class="card-title">Novo lote recebido</div>
+    <div class="form-grid g4">
+      <div class="field"><label>SKU *</label><input type="text" id="r-sku" placeholder="SKU-001" oninput="autoSku()" autocomplete="off"></div>
+      <div class="field"><label>Descrição <span id="r-desc-hint" style="font-size:10px;color:var(--ok);display:none">✓ auto</span></label><input type="text" id="r-desc" placeholder="Descrição"></div>
+      <div class="field"><label>Nº Lote *</label><input type="text" id="r-lote" placeholder="LOT-2025-01"></div>
+      <div class="field"><label>Validade *</label><input type="date" id="r-val"></div>
+    </div>
+    <div class="form-grid g4" style="margin-top:10px">
+      <div class="field"><label>Quantidade *</label><input type="number" id="r-qty" min="0.01" step="0.01" placeholder="0"></div>
+      <div class="field"><label>Unidade</label><select id="r-un"><option>UN</option><option>CX</option><option>KG</option><option>L</option><option>PCT</option><option>FD</option><option>SC</option></select></div>
+      <div class="field"><label>Endereço WMS *</label><input type="text" id="r-end" placeholder="A-01-01"></div>
+      <div class="field"><label>Fornecedor <span id="r-forn-hint" style="font-size:10px;color:var(--ok);display:none">✓ auto</span></label><input type="text" id="r-forn" placeholder="Fornecedor"></div>
+    </div>
+    <div class="form-actions"><button class="btn" onclick="limparReceb()">Limpar</button><button class="btn btn-primary" onclick="salvarLote()"><i class="ti ti-package-import"></i> Registrar</button></div>
+  </div>
+</div>
+
+<div id="page-estoque" class="page">
+  <div class="page-header"><h1>Estoque por endereço</h1><p>Lotes ordenados por validade (FEFO)</p></div>
+  <div class="filter-bar">
+    <input type="text" id="ef-sku" placeholder="Buscar SKU, endereço..." oninput="carregarEstoque()" style="flex:1;min-width:180px">
+    <select id="ef-status" onchange="carregarEstoque()"><option value="">Todos</option><option value="vencido">Vencidos</option><option value="critico">Crítico</option><option value="atencao">Atenção</option><option value="ok">OK</option></select>
+    <button class="btn btn-sm" onclick="carregarEstoque()"><i class="ti ti-refresh"></i></button>
+    <button class="btn btn-sm btn-danger" id="btn-baixa" style="display:none" onclick="abrirBaixa()"><i class="ti ti-arrow-down-circle"></i> Baixar vencidos</button>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden"><div class="table-wrap" id="estoque-wrap"><div class="loading">Carregando...</div></div></div>
+</div>
+
+<div id="page-fefo" class="page">
+  <div class="page-header"><h1>Fila FEFO</h1><p>Ordem de separação por validade</p></div>
+  <div class="card">
+    <div class="form-grid g3">
+      <div class="field"><label>SKU / Produto *</label><select id="fq-sku"><option value="">— selecione —</option></select></div>
+      <div class="field"><label>Quantidade necessária</label><input type="number" id="fq-qty" placeholder="0 = ver todos" min="0"></div>
+      <div class="field" style="display:flex;align-items:flex-end"><button class="btn btn-primary" style="width:100%" onclick="consultarFEFO()"><i class="ti ti-sort-ascending-2"></i> Gerar fila</button></div>
+    </div>
+  </div>
+  <div id="fefo-result"></div>
+</div>
+
+<div id="page-movimentos" class="page">
+  <div class="page-header"><h1>Movimentos</h1><p>Histórico completo de entradas e saídas</p></div>
+  <div class="card" style="padding:0;overflow:hidden"><div class="table-wrap" id="mov-wrap"><div class="loading">Carregando...</div></div></div>
+</div>
+
+<div id="page-importar" class="page">
+  <div class="page-header"><h1>Importar / Exportar</h1><p>Importe estoque ou exporte para backup</p></div>
+  <div class="card">
+    <div class="card-title">Importar estoque CSV</div>
+    <div class="drop-area" onclick="document.getElementById('csv-est').click()">
+      <i class="ti ti-upload" style="font-size:28px;display:block;margin-bottom:6px"></i>Importar CSV de estoque
+      <input type="file" id="csv-est" accept=".csv,.txt" style="display:none" onchange="importarEstoqueCSV(event)">
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Exportar e modelos</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a href="/api/estoque/exportar" class="btn"><i class="ti ti-download"></i> Exportar estoque</a>
+      <button class="btn" onclick="baixarModeloEstoque()"><i class="ti ti-download"></i> Modelo estoque</button>
+      <button class="btn" onclick="baixarModeloPedidos()"><i class="ti ti-download"></i> Modelo pedidos</button>
+    </div>
+  </div>
+</div>
+
+<div id="page-config" class="page">
+  <div class="page-header"><h1>Configurações</h1><p>Integração Qlik Sense</p></div>
+  <div class="card">
+    <div class="card-title">Qlik Sense</div>
+    <div id="qlik-status-box" class="qlik-status off"><i class="ti ti-plug-off"></i> Não configurado</div>
+    <div class="form-grid g2">
+      <div class="field"><label>Tenant URL</label><input type="text" id="q-tenant" placeholder="empresa.us.qlikcloud.com"></div>
+      <div class="field"><label>App ID</label><input type="text" id="q-app" placeholder="xxxxxxxx-xxxx-xxxx-xxxx"></div>
+    </div>
+    <div class="field" style="margin-top:10px"><label>API Key</label><input type="password" id="q-key" placeholder="Cole a API Key (salva com segurança)"></div>
+    <div class="form-actions"><button class="btn btn-primary" onclick="salvarQlik()"><i class="ti ti-check"></i> Salvar</button></div>
+    <hr class="sep-line">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-info" onclick="sincronizarQlik()"><i class="ti ti-refresh"></i> Sincronizar pedidos do Qlik</button>
+      <span style="font-size:12px;color:var(--text2)">Importa pedidos pendentes diretamente do Qlik</span>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- Modais -->
+<div class="modal-bg" id="modal-onda">
+  <div class="modal">
+    <h2>Nova onda de separação</h2>
+    <div class="field" style="margin-bottom:12px"><label>Nome da onda *</label><input type="text" id="on-nome" placeholder="Onda SEDEX 26/05"></div>
+    <div class="form-grid g2" style="margin-bottom:10px">
+      <div class="field"><label>Transportadora</label><input type="text" id="on-transp" placeholder="vazio = todas"></div>
+      <div class="field"><label>Serviço</label><input type="text" id="on-serv" placeholder="SEDEX, PAC..."></div>
+      <div class="field"><label>Campanha</label><input type="text" id="on-camp" placeholder="vazio = todas"></div>
+      <div class="field"><label>Fornecedor</label><input type="text" id="on-forn" placeholder="vazio = todos"></div>
+      <div class="field"><label>Entrega até</label><input type="date" id="on-entrega"></div>
+      <div class="field"><label>Prioridade máx.</label><select id="on-prio"><option value="">Todas</option><option value="1">Alta</option><option value="2">Alta e Média</option><option value="3">Todas</option></select></div>
+    </div>
+    <div id="on-preview" style="font-size:12px;color:var(--text2);padding:8px 12px;background:var(--bg);border-radius:6px;margin-bottom:10px">Configure os filtros e clique em Visualizar.</div>
+    <div class="modal-actions">
+      <button class="btn" onclick="fecharModal('modal-onda')">Cancelar</button>
+      <button class="btn" onclick="previewOnda()"><i class="ti ti-eye"></i> Visualizar</button>
+      <button class="btn btn-primary" onclick="criarOnda()"><i class="ti ti-wave-sine"></i> Gerar onda</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-mov">
+  <div class="modal">
+    <h2 id="mov-title">Movimentar lote</h2>
+    <input type="hidden" id="mov-lid">
+    <div class="form-grid g2" style="margin-bottom:10px">
+      <div class="field"><label>Tipo</label><select id="mov-tipo"><option value="SAIDA">Saída</option><option value="ENTRADA">Entrada</option><option value="AJUSTE">Ajuste</option></select></div>
+      <div class="field"><label>Quantidade</label><input type="number" id="mov-qty" min="0.01" step="0.01" placeholder="0"></div>
+    </div>
+    <div class="field" style="margin-bottom:10px"><label>Responsável</label><input type="text" id="mov-user" placeholder="seu nome"></div>
+    <div class="field"><label>Observação</label><input type="text" id="mov-obs" placeholder="ex: pedido #1234"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="fecharModal('modal-mov')">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarMov()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-baixa">
+  <div class="modal">
+    <h2>Baixar vencidos em lote</h2>
+    <div id="baixa-msg" style="font-size:13px;color:var(--danger);padding:10px 14px;background:var(--danger-bg);border-radius:6px;margin-bottom:14px"></div>
+    <input type="hidden" id="baixa-ids">
+    <div class="form-grid g2">
+      <div class="field"><label>Responsável</label><input type="text" id="baixa-user" placeholder="seu nome"></div>
+      <div class="field"><label>Motivo</label><input type="text" id="baixa-obs" placeholder="Descarte por vencimento"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="fecharModal('modal-baixa')">Cancelar</button>
+      <button class="btn btn-primary" style="background:var(--danger);border-color:var(--danger)" onclick="confirmarBaixa()">Confirmar baixa</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API='';
+async function api(path,opts={}){const r=await fetch(API+path,{headers:{'Content-Type':'application/json'},...opts});if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.detail||'Erro');}return r.json();}
+function toast(msg,tipo='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className=tipo;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',3500);}
+function badge(s,d){if(s==='vencido')return`<span class="badge badge-danger">Vencido (${Math.abs(d)}d)</span>`;if(s==='critico')return`<span class="badge badge-danger">Crítico: ${d}d</span>`;if(s==='atencao')return`<span class="badge badge-warn">Atenção: ${d}d</span>`;return`<span class="badge badge-ok">OK: ${d}d</span>`;}
+function prioBadge(p){return p===1?'<span class="badge badge-danger">Alta</span>':p===2?'<span class="badge badge-warn">Média</span>':'<span class="badge badge-gray">Baixa</span>';}
+function statusBadge(s){return s==='pendente'?'<span class="badge badge-warn">Pendente</span>':s==='em_onda'?'<span class="badge badge-info">Em onda</span>':`<span class="badge badge-ok">${s}</span>`;}
+function fecharModal(id){document.getElementById(id).classList.remove('open');}
+function parseCSV(txt){txt=txt.replace(/\r\n/g,'\n').replace(/\r/g,'\n').replace(/\uFEFF/g,'');const lines=txt.trim().split('\n').filter(l=>l.trim());if(lines.length<2)return[];const sep=lines[0].includes('\t')?'\t':lines[0].includes(';')?';':',';const headers=lines[0].split(sep).map(h=>h.trim().toLowerCase().replace(/['"]/g,''));return lines.slice(1).map(l=>{const vals=l.split(sep).map(v=>v.trim().replace(/^["']|["']$/g,''));const obj={};headers.forEach((h,j)=>obj[h]=vals[j]||'');return obj;});}
+function goTo(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');document.querySelectorAll('.nav-item').forEach(x=>{if(x.getAttribute('onclick')?.includes("'"+p+"'"))x.classList.add('active');});if(p==='dashboard')carregarDashboard();if(p==='pedidos'){carregarPedidos();carregarPcpMetricas();}if(p==='ondas')carregarOndas();if(p==='estoque')carregarEstoque();if(p==='fefo')carregarSkus();if(p==='movimentos')carregarMovimentos();if(p==='config')carregarQlikStatus();}
+async function carregarDashboard(){try{const[me,mp,vc,at]=await Promise.all([api('/api/estoque/metricas'),api('/api/pcp/metricas'),api('/api/estoque/lotes?status=vencido'),api('/api/estoque/lotes?status=critico')]);document.getElementById('d-lotes').textContent=me.total_lotes;document.getElementById('d-skus').textContent=me.total_skus;document.getElementById('d-atencao').textContent=me.atencao;document.getElementById('d-vencidos').textContent=me.vencidos;document.getElementById('d-pendentes').textContent=mp.pendentes;document.getElementById('d-ondas').textContent=mp.ondas_abertas;document.getElementById('d-atrasados').textContent=mp.atrasados;renderTabSimples('d-criticos',[...vc,...at].slice(0,8),true);const peds=await api('/api/pcp/pedidos?status=pendente');renderTabPeds('d-pedidos-old',peds.slice(0,6));}catch(e){toast(e.message,'err');}}
+function renderTabSimples(id,dados,mov){const w=document.getElementById(id);if(!dados.length){w.innerHTML='<div class="empty">Nenhum registro.</div>';return;}w.innerHTML=`<div class="table-wrap"><table><thead><tr><th>SKU</th><th>Lote</th><th>Validade</th><th>Endereço</th><th>Qtd</th><th>Status</th>${mov?'<th></th>':''}</tr></thead><tbody>${dados.map(l=>`<tr><td><strong>${l.sku}</strong></td><td><span class="mtag">${l.lote}</span></td><td style="font-family:var(--mono);font-size:12px">${l.validade}</td><td><span class="mtag">${l.endereco}</span></td><td>${l.quantidade} ${l.unidade}</td><td>${badge(l.status_val,l.dias_validade)}</td>${mov?`<td><button class="btn btn-sm" onclick="abrirMov(${l.id},'${l.sku}','${l.lote}')">Mov.</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;}
+function renderTabPeds(id,dados){const w=document.getElementById(id);if(!dados.length){w.innerHTML='<div class="empty">Nenhum pedido pendente.</div>';return;}w.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Pedido</th><th>SKU</th><th>Transp.</th><th>Entrega</th><th>Prior.</th><th>Status</th></tr></thead><tbody>${dados.map(p=>`<tr><td><span class="mtag">${p.num_pedido}</span></td><td><strong>${p.sku}</strong></td><td style="font-size:12px">${p.transportadora||'—'}</td><td style="font-family:var(--mono);font-size:12px">${p.data_entrega||'—'}</td><td>${prioBadge(p.prioridade)}</td><td>${statusBadge(p.status)}</td></tr>`).join('')}</tbody></table></div>`;}
+async function carregarPcpMetricas(){try{const m=await api('/api/pcp/metricas');document.getElementById('d-pendentes').textContent=m.pendentes;document.getElementById('d-ondas').textContent=m.ondas_abertas;document.getElementById('d-atrasados').textContent=m.atrasados;}catch(e){}}
+async function carregarPedidos(){const wrap=document.getElementById('pedidos-wrap');wrap.innerHTML='<div class="loading">Carregando...</div>';const s=v=>document.getElementById(v)?.value||'';try{const dados=await api(`/api/pcp/pedidos?status=${s('pf-status')}&transportadora=${encodeURIComponent(s('pf-transp'))}&servico=${encodeURIComponent(s('pf-serv'))}&campanha=${encodeURIComponent(s('pf-camp'))}&prioridade=${s('pf-prio')}`);if(!dados.length){wrap.innerHTML='<div class="empty">Nenhum pedido.</div>';return;}wrap.innerHTML=`<table><thead><tr><th>Pedido</th><th>Cliente</th><th>SKU</th><th>Qtd</th><th>Transp.</th><th>Serviço</th><th>Campanha</th><th>Entrega</th><th>Prior.</th><th>Status</th><th></th></tr></thead><tbody>${dados.map(p=>`<tr><td><span class="mtag">${p.num_pedido}</span></td><td style="font-size:12px">${p.cliente||'—'}</td><td><strong>${p.sku}</strong></td><td style="font-family:var(--mono)">${p.quantidade}</td><td style="font-size:12px">${p.transportadora||'—'}</td><td style="font-size:12px">${p.servico||'—'}</td><td style="font-size:12px">${p.campanha||'—'}</td><td style="font-family:var(--mono);font-size:12px">${p.data_entrega||'—'}</td><td>${prioBadge(p.prioridade)}</td><td>${statusBadge(p.status)}</td><td><button class="btn btn-sm btn-danger" onclick="removerPedido(${p.id})">x</button></td></tr>`).join('')}</tbody></table>`;}catch(e){toast(e.message,'err');}}
+async function salvarPedido(){const g=id=>document.getElementById(id).value.trim();const num=g('p-num'),sku=g('p-sku'),qty=parseFloat(g('p-qty'));if(!num||!sku||!qty){toast('Preencha Pedido, SKU e Quantidade','err');return;}try{await api('/api/pcp/pedidos',{method:'POST',body:JSON.stringify({num_pedido:num,data_pedido:g('p-dped'),cliente:g('p-cli'),sku,descricao:g('p-desc'),quantidade:qty,transportadora:g('p-transp'),servico:g('p-serv'),campanha:g('p-camp'),fornecedor:g('p-forn'),data_entrega:g('p-entrega'),prioridade:parseInt(document.getElementById('p-prio').value)})});toast('Pedido adicionado');limparPedido();carregarPedidos();carregarPcpMetricas();}catch(e){toast(e.message,'err');}}
+function limparPedido(){['p-num','p-dped','p-cli','p-sku','p-desc','p-qty','p-transp','p-serv','p-camp','p-forn','p-entrega'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});}
+async function removerPedido(id){if(!confirm('Remover?'))return;try{await api(`/api/pcp/pedidos/${id}`,{method:'DELETE'});toast('Removido');carregarPedidos();carregarPcpMetricas();}catch(e){toast(e.message,'err');}}
+async function importarPedidosCSV(e){const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=async ev=>{const mapa={'pedidoformatado':'pedido','logname':'transportadora','proprovidercode':'sku','proname':'descricao','nome_produto':'descricao','nomearmazem':'fornecedor','destinatario':'cliente','idcampaign':'campanha'};const linhas=parseCSV(ev.target.result).map(l=>{const out={};for(const[k,v]of Object.entries(l))out[mapa[k]||k]=v;return out;});try{const r=await api('/api/pcp/pedidos/importar',{method:'POST',body:JSON.stringify({linhas})});toast(`${r.importados} pedido(s) importado(s)`,r.importados>0?'ok':'err');carregarPedidos();carregarPcpMetricas();}catch(ex){toast(ex.message,'err');}};reader.readAsText(f,'UTF-8');}
+function baixarModeloPedidos(){const csv='pedido,data_pedido,cliente,sku,descricao,quantidade,transportadora,servico,campanha,fornecedor,data_entrega,prioridade\nPED-001,26/05/2026,Cliente A,SKU-001,Produto A,10,Correios,SEDEX,BF,Armazem,30/05/2026,1';const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='modelo_pedidos.csv';a.click();}
+function abrirModalOnda(){document.getElementById('on-preview').textContent='Configure os filtros e clique em Visualizar.';document.getElementById('modal-onda').classList.add('open');}
+async function previewOnda(){const f=coletarFiltrosOnda();try{const dados=await api(`/api/pcp/pedidos?status=pendente&transportadora=${encodeURIComponent(f.transportadora||'')}&servico=${encodeURIComponent(f.servico||'')}&campanha=${encodeURIComponent(f.campanha||'')}&fornecedor=${encodeURIComponent(f.fornecedor||'')}&prioridade=${f.prioridade||''}`);const peds=new Set(dados.map(d=>d.num_pedido)).size;const itens=dados.reduce((s,d)=>s+parseFloat(d.quantidade),0);document.getElementById('on-preview').textContent=`${peds} pedido(s) · ${itens} itens nesta onda.`;}catch(e){toast(e.message,'err');}}
+function coletarFiltrosOnda(){const g=id=>document.getElementById(id)?.value.trim()||'';return{nome:g('on-nome'),transportadora:g('on-transp')||null,servico:g('on-serv')||null,campanha:g('on-camp')||null,fornecedor:g('on-forn')||null,data_entrega:g('on-entrega')||null,prioridade:g('on-prio')?parseInt(g('on-prio')):null};}
+async function criarOnda(){const f=coletarFiltrosOnda();if(!f.nome){toast('Informe um nome para a onda','err');return;}try{const o=await api('/api/pcp/ondas',{method:'POST',body:JSON.stringify(f)});toast(`Onda "${o.nome}" criada — ${o.total_pedidos} pedido(s)`);fecharModal('modal-onda');carregarPedidos();carregarPcpMetricas();goTo('ondas');}catch(e){toast(e.message,'err');}}
+async function carregarOndas(){const wrap=document.getElementById('ondas-wrap');wrap.innerHTML='<div class="loading">Carregando...</div>';try{const ondas=await api('/api/pcp/ondas');if(!ondas.length){wrap.innerHTML='<div class="empty">Nenhuma onda criada.</div>';return;}wrap.innerHTML=ondas.map(o=>`<div class="onda-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div><div style="font-weight:500;font-size:15px">${o.nome}</div><div style="font-size:12px;color:var(--text2);margin-top:2px">${o.criterios||'Todos pendentes'}</div></div><div style="display:flex;gap:6px"><span class="badge badge-info">${o.status}</span><button class="btn btn-sm" onclick="toggleOndaPeds(${o.id})">Ver pedidos</button><button class="btn btn-sm btn-danger" onclick="cancelarOnda(${o.id})">Cancelar</button></div></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px"><div class="metric" style="padding:10px"><div class="metric-val" style="font-size:18px">${o.total_pedidos}</div><div class="metric-label">Pedidos</div></div><div class="metric" style="padding:10px"><div class="metric-val" style="font-size:18px">${o.total_skus}</div><div class="metric-label">SKUs</div></div><div class="metric" style="padding:10px"><div class="metric-val" style="font-size:18px">${o.total_itens}</div><div class="metric-label">Itens</div></div><div class="metric" style="padding:10px"><div class="metric-val" style="font-size:12px;font-family:var(--mono)">${(o.criado_em||'').slice(0,16)}</div><div class="metric-label">Criada</div></div></div><div id="onda-ped-${o.id}" style="display:none;margin-top:12px"></div></div>`).join('');}catch(e){toast(e.message,'err');}}
+async function toggleOndaPeds(id){const w=document.getElementById(`onda-ped-${id}`);if(w.style.display==='block'){w.style.display='none';return;}w.innerHTML='<div class="loading">Carregando...</div>';w.style.display='block';try{const dados=await api(`/api/pcp/ondas/${id}/pedidos`);if(!dados.length){w.innerHTML='<div class="empty">Sem pedidos.</div>';return;}w.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Pedido</th><th>Cliente</th><th>SKU</th><th>Qtd</th><th>Transp.</th><th>Entrega</th><th>Prior.</th></tr></thead><tbody>${dados.map(p=>`<tr><td><span class="mtag">${p.num_pedido}</span></td><td style="font-size:12px">${p.cliente||'—'}</td><td><strong>${p.sku}</strong></td><td style="font-family:var(--mono)">${p.quantidade}</td><td style="font-size:12px">${p.transportadora||'—'}</td><td style="font-family:var(--mono);font-size:12px">${p.data_entrega||'—'}</td><td>${prioBadge(p.prioridade)}</td></tr>`).join('')}</tbody></table></div>`;}catch(e){w.innerHTML='<div class="empty">Erro.</div>';}}
+async function cancelarOnda(id){if(!confirm('Cancelar onda?'))return;try{await api(`/api/pcp/ondas/${id}`,{method:'DELETE'});toast('Onda cancelada');carregarOndas();carregarPcpMetricas();}catch(e){toast(e.message,'err');}}
+let _skuT=null;
+async function autoSku(){clearTimeout(_skuT);const sku=document.getElementById('r-sku').value.trim();if(sku.length<3)return;_skuT=setTimeout(async()=>{try{const d=await api('/api/estoque/skus/'+encodeURIComponent(sku));const de=document.getElementById('r-desc');const fo=document.getElementById('r-forn');if(!de.value&&d.descricao){de.value=d.descricao;document.getElementById('r-desc-hint').style.display='inline';}if(!fo.value&&d.fornecedor){fo.value=d.fornecedor;document.getElementById('r-forn-hint').style.display='inline';}if(d.unidade){const opt=[...document.getElementById('r-un').options].find(o=>o.value===d.unidade);if(opt)document.getElementById('r-un').value=d.unidade;}}catch(e){}},500);}
+async function salvarLote(){const g=id=>document.getElementById(id).value.trim();const sku=g('r-sku'),lote=g('r-lote'),val=g('r-val'),qty=parseFloat(g('r-qty')),end=g('r-end');if(!sku||!lote||!val||!qty||!end){toast('Preencha SKU, Lote, Validade, Quantidade e Endereço','err');return;}try{await api('/api/estoque/lotes',{method:'POST',body:JSON.stringify({sku,descricao:g('r-desc'),lote,validade:val,quantidade:qty,unidade:document.getElementById('r-un').value,endereco:end,fornecedor:g('r-forn')})});toast('Lote registrado');limparReceb();}catch(e){toast(e.message,'err');}}
+function limparReceb(){['r-sku','r-desc','r-lote','r-val','r-qty','r-end','r-forn'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});['r-desc-hint','r-forn-hint'].forEach(id=>document.getElementById(id).style.display='none');}
+async function carregarEstoque(){const wrap=document.getElementById('estoque-wrap');wrap.innerHTML='<div class="loading">Carregando...</div>';const sku=document.getElementById('ef-sku')?.value||'';const status=document.getElementById('ef-status')?.value||'';try{const dados=await api(`/api/estoque/lotes?sku=${encodeURIComponent(sku)}${status?'&status='+status:''}`);const btn=document.getElementById('btn-baixa');if(btn)btn.style.display=(status==='vencido'&&dados.length>0)?'inline-flex':'none';if(!dados.length){wrap.innerHTML='<div class="empty">Nenhum lote encontrado.</div>';return;}wrap.innerHTML=`<table><thead><tr><th><input type="checkbox" id="chk-all" onclick="toggleAll(this)"></th><th>Endereço</th><th>SKU</th><th>Descrição</th><th>Lote</th><th>Validade</th><th>Dias</th><th>Qtd</th><th>Un</th><th>Status</th><th></th></tr></thead><tbody>${dados.map(l=>`<tr><td><input type="checkbox" class="chk-l" value="${l.id}"></td><td><span class="mtag">${l.endereco}</span></td><td><strong>${l.sku}</strong></td><td style="color:var(--text2);font-size:12px">${l.descricao||'—'}</td><td><span class="mtag">${l.lote}</span></td><td style="font-family:var(--mono);font-size:12px">${l.validade}</td><td style="font-family:var(--mono);font-weight:500;color:${l.dias_validade<0?'var(--danger)':l.dias_validade<=30?'var(--warn)':'var(--text2)'}">${l.dias_validade}</td><td style="font-family:var(--mono)">${l.quantidade}</td><td style="color:var(--text3)">${l.unidade}</td><td>${badge(l.status_val,l.dias_validade)}</td><td style="display:flex;gap:4px;padding:6px 10px"><button class="btn btn-sm" onclick="abrirMov(${l.id},'${l.sku}','${l.lote}')">Mov.</button><button class="btn btn-sm btn-danger" onclick="removerLote(${l.id})">x</button></td></tr>`).join('')}</tbody></table>`;}catch(e){toast(e.message,'err');}}
+function toggleAll(chk){document.querySelectorAll('.chk-l').forEach(c=>c.checked=chk.checked);}
+async function removerLote(id){if(!confirm('Remover lote?'))return;try{await api(`/api/estoque/lotes/${id}`,{method:'DELETE'});toast('Removido');carregarEstoque();}catch(e){toast(e.message,'err');}}
+function abrirBaixa(){const sel=[...document.querySelectorAll('.chk-l:checked')].map(c=>c.value);const total=document.querySelectorAll('.chk-l').length;document.getElementById('baixa-msg').textContent=sel.length>0?`${sel.length} lote(s) selecionado(s) serão baixados.`:`Todos os ${total} lote(s) vencidos serão baixados.`;document.getElementById('baixa-ids').value=sel.join(',');document.getElementById('modal-baixa').classList.add('open');}
+async function confirmarBaixa(){const usuario=document.getElementById('baixa-user').value||'operador';const obs=document.getElementById('baixa-obs').value||'Baixa de vencidos';const idsRaw=document.getElementById('baixa-ids').value;const ids=idsRaw?idsRaw.split(',').map(Number):[];try{const r=await api('/api/estoque/lotes/baixa-vencidos',{method:'POST',body:JSON.stringify({usuario,obs,ids})});toast(r.msg);fecharModal('modal-baixa');carregarEstoque();}catch(e){toast(e.message,'err');}}
+async function importarEstoqueCSV(e){const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=async ev=>{const linhas=parseCSV(ev.target.result);try{const r=await api('/api/estoque/importar',{method:'POST',body:JSON.stringify({linhas})});toast(`${r.importados} lote(s) importado(s)`,r.importados>0?'ok':'err');}catch(ex){toast(ex.message,'err');}};reader.readAsText(f,'UTF-8');}
+function baixarModeloEstoque(){const csv='sku,descricao,lote,validade,quantidade,unidade,endereco,fornecedor\nSKU-001,Produto A,LOT-001,31/12/2025,100,UN,A-01-01,Fornec SA';const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='modelo_estoque.csv';a.click();}
+async function carregarSkus(){try{const skus=await api('/api/estoque/skus');const sel=document.getElementById('fq-sku');sel.innerHTML='<option value="">— selecione —</option>'+skus.map(s=>`<option value="${s.sku}">${s.sku}${s.descricao?' — '+s.descricao:''} (${s.total} ${s.unidade})</option>`).join('');}catch(e){}}
+async function consultarFEFO(){const sku=document.getElementById('fq-sku').value;const qty=parseFloat(document.getElementById('fq-qty').value)||0;const res=document.getElementById('fefo-result');if(!sku){toast('Selecione um produto','err');return;}res.innerHTML='<div class="loading">Calculando...</div>';try{const d=await api(`/api/estoque/fefo?sku=${sku}&quantidade=${qty}`);let html=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div><div style="font-weight:500;font-size:15px">${d.sku}${d.descricao?' — '+d.descricao:''}</div><div style="font-size:12px;color:var(--text2);margin-top:2px">${d.lotes.length} lote(s) · ${d.total} disponível</div></div>${qty>0?`<span class="badge ${d.ok?'badge-ok':'badge-danger'}">${d.ok?'Cobertura OK':'Insuficiente'}</span>`:''}</div>`;d.lotes.forEach((l,i)=>{const rc=i===0?'rank-1':i===1?'rank-2':'rank-n';html+=`<div class="fefo-row"><div class="rank ${rc}">${i+1}</div><div style="flex:1"><div style="font-family:var(--mono);font-size:13px;font-weight:500">${l.lote}</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Validade: ${l.validade} · ${l.dias_validade>=0?`vence em ${l.dias_validade}d`:`<span style="color:var(--danger)">VENCIDO há ${Math.abs(l.dias_validade)}d</span>`} · <span class="mtag">${l.endereco}</span></div></div>${l.separar>0?`<div style="text-align:right"><div style="font-size:20px;font-weight:500;font-family:var(--mono);color:var(--ok)">${l.separar}</div><div style="font-size:11px;color:var(--text3)">${l.unidade}</div></div>`:`<div style="font-size:12px;color:var(--text2)">${l.quantidade} disp.</div>`}${badge(l.status_val,l.dias_validade)}<button class="btn btn-sm" onclick="abrirMov(${l.id},'${l.sku}','${l.lote}')">Saída</button></div>`;});if(qty>0&&!d.ok)html+=`<div style="padding:10px;background:var(--danger-bg);border-radius:6px;color:var(--danger);font-size:13px;margin-top:8px">Faltam ${d.falta} para completar.</div>`;html+='</div>';res.innerHTML=html;}catch(e){res.innerHTML=`<div class="card"><div class="empty">${e.message}</div></div>`;}}
+function abrirMov(id,sku,lote){document.getElementById('mov-lid').value=id;document.getElementById('mov-title').textContent=`Movimentar — ${sku} · ${lote}`;document.getElementById('mov-qty').value='';document.getElementById('modal-mov').classList.add('open');}
+async function confirmarMov(){const id=document.getElementById('mov-lid').value;const tipo=document.getElementById('mov-tipo').value;const qty=parseFloat(document.getElementById('mov-qty').value);const user=document.getElementById('mov-user').value||'operador';const obs=document.getElementById('mov-obs').value;if(!qty||qty<=0){toast('Informe uma quantidade','err');return;}try{await api(`/api/estoque/lotes/${id}/mov`,{method:'POST',body:JSON.stringify({tipo,quantidade:qty,usuario:user,obs})});toast(`${tipo} de ${qty} registrado`);fecharModal('modal-mov');carregarEstoque();}catch(e){toast(e.message,'err');}}
+async function carregarMovimentos(){const wrap=document.getElementById('mov-wrap');try{const dados=await api('/api/estoque/movimentos?limit=100');if(!dados.length){wrap.innerHTML='<div class="empty">Nenhum movimento.</div>';return;}wrap.innerHTML=`<table><thead><tr><th>Data/hora</th><th>SKU</th><th>Lote</th><th>Endereço</th><th>Tipo</th><th>Qtd</th><th>Usuário</th><th>Obs</th></tr></thead><tbody>${dados.map(m=>`<tr><td style="font-family:var(--mono);font-size:12px;color:var(--text2)">${(m.data_mov||'').slice(0,16).replace('T',' ')}</td><td><strong>${m.sku||'—'}</strong></td><td><span class="mtag">${m.num_lote||'—'}</span></td><td><span class="mtag">${m.endereco||'—'}</span></td><td><span class="badge ${m.tipo==='ENTRADA'?'badge-ok':m.tipo==='SAIDA'?'badge-info':'badge-warn'}">${m.tipo}</span></td><td style="font-family:var(--mono)">${m.quantidade}</td><td style="color:var(--text2)">${m.usuario||'—'}</td><td style="font-size:12px;color:var(--text2)">${m.obs||'—'}</td></tr>`).join('')}</tbody></table>`;}catch(e){toast(e.message,'err');}}
+async function carregarQlikStatus(){try{const s=await api('/api/pcp/qlik/status');const box=document.getElementById('qlik-status-box');if(s.configurado){box.className='qlik-status ok';box.innerHTML=`<i class="ti ti-plug"></i> Conectado — ${s.tenant}`;document.getElementById('q-tenant').value=s.tenant;document.getElementById('q-app').value=s.app_id;}else{box.className='qlik-status off';box.innerHTML='<i class="ti ti-plug-off"></i> Não configurado';}}catch(e){}}
+async function salvarQlik(){const tenant=document.getElementById('q-tenant').value.trim();const key=document.getElementById('q-key').value.trim();const app=document.getElementById('q-app').value.trim();if(!tenant||!key||!app){toast('Preencha todos os campos','err');return;}try{await api('/api/pcp/qlik/config',{method:'POST',body:JSON.stringify({tenant,api_key:key,app_id:app})});toast('Configuração salva');document.getElementById('q-key').value='';carregarQlikStatus();}catch(e){toast(e.message,'err');}}
+async function sincronizarQlik(){toast('Conectando ao Qlik...','info');try{const r=await api('/api/pcp/qlik/sincronizar',{method:'POST'});toast(r.msg,r.importados>0?'ok':'err');carregarPedidos();carregarPcpMetricas();}catch(e){toast(e.message,'err');}}
+['modal-onda','modal-mov','modal-baixa'].forEach(id=>{document.getElementById(id).addEventListener('click',function(e){if(e.target===this)fecharModal(id);});});
+carregarDashboard();
+</script>
+</body>
+</html>
